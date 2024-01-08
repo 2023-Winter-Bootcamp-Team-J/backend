@@ -1,0 +1,107 @@
+[
+    {
+        "model": "user.User",
+        "pk": 1,
+        "fields": {
+            "id": 1,
+            "nickname": "Kanguk",
+            "created_at": "2024-01-08T06:39:55.329190",
+            "updated_at": "2024-01-08T06:39:55.329261",
+            "is_deleted": false
+        }
+    },
+        {
+        "model": "user.User",
+        "pk": 2,
+        "fields": {
+            "id": 2,
+            "nickname": "Hana",
+            "created_at": "2024-01-08 06:40:56.588446",
+            "updated_at": "2024-01-08 06:40:56.588527",
+            "is_deleted": false
+        }
+    },
+        {
+        "model": "user.User",
+        "pk": 3,
+        "fields": {
+            "id": 3,
+            "nickname": "Jungeun",
+            "created_at": "2024-01-08 06:41:20.168715",
+            "updated_at": "2024-01-08 06:41:20.168769",
+            "is_deleted": false
+        }
+    },
+        {
+        "model": "user.User",
+        "pk": 4,
+        "fields": {
+            "id": 4,
+            "nickname": "Miyeong",
+            "created_at": "2024-01-08 06:50:16.868642",
+            "updated_at": "2024-01-08 06:50:16.868760",
+            "is_deleted": false
+        }
+    },
+        {
+        "model": "user.User",
+        "pk": 5,
+        "fields": {
+            "id": 5,
+            "nickname": "Hyeongjun",
+            "created_at": "2024-01-08 06:52:07.308525",
+            "updated_at": "2024-01-08 06:52:07.308584",
+            "is_deleted": false
+        }
+    },
+        {
+        "model": "user.User",
+        "pk": 6,
+        "fields": {
+            "id": 6,
+            "nickname": "Kwanghyun",
+            "created_at": "2024-01-08 06:52:43.630774",
+            "updated_at": "2024-01-08 06:52:43.630827",
+            "is_deleted": false
+        }
+    },
+    {
+        "model": "story.Story",
+        "pk": 1,
+        "fields": {
+            "user_id": 1,
+            "content": "스토리 시작 : 알렉스는 지역에서 유명한 폐허가 된 저택을 탐험하기로 결심한다. 이 저택은 오랫동안 불길한 소문이 돌아왔으며, 많은 사람들이 그곳에 가는 것을 꺼려합니다. 알렉스는 진실을 밝혀내기 위해 저택으로 향합니다.",
+            "image_url": "https://files.oaiusercontent.com/file-KS9CwjLEWg12xRP5oz6RIAdI?se=2024-01-08T06%3A50%3A41Z&sp=r&sv=2021-08-06&sr=b&rscc=max-age%3D31536000%2C immutable&rscd=attachment%3B filename%3Da6bc9116-4502-4160-9405-b19b3d8a5f31.webp&sig=N%2B/pGmfbHS0s08Qf8sfx5MU4LjL88K3gbDwhaR4ioaU%3D",
+            "created_at": "2024-01-08T07:13:33.230934",
+            "updated_at": "2024-01-08T07:13:33.231067",
+            "is_deleted": 0
+        }
+    },
+    {
+        "model": "story.Story",
+        "pk": 2,
+        "fields": {
+            "user_id": 2,
+            "content": "샘은 전설 속에만 존재하는 것으로 여겨졌던 고대 문명의 폐허를 찾기 위한 탐험을 시작합니다. 이 폐허는 신비한 숲 속에 숨겨져 있다고 알려져 있으며, 고대의 보물과 비밀이 숨겨져 있다고 전해집니다.",
+            "image_url": "https://files.oaiusercontent.com/file-kgatdBxHOUlPqgJjSOXCP29x?se=2024-01-08T06%3A57%3A59Z&sp=r&sv=2021-08-06&sr=b&rscc=max-age%3D31536000%2C immutable&rscd=attachment%3B filename%3D5a6b7d96-3223-493d-97e9-77f4f01dd6c1.webp&sig=voG1SVuU3yuTBl7SM%2BVEw2%2BWMs9s1lAm9mN8A8bBCiQ%3D",
+            "created_at": "2024-01-08T07:14:54.478253",
+            "updated_at": "2024-01-08T07:14:54.478388",
+            "is_deleted": 0
+        }
+    },
+    {
+        "model": "story.Story",
+        "pk": 3,
+        "fields": {
+            "user_id": 3,
+            "content": "제이미는 새 학기 첫 날, 새로운 학교에 전학 왔습니다. 이곳에서 제이미는 새로운 친구들을 만나고, 다양한 도전에 직면하며 자신만의 자리를 찾아가야 합니다.",
+            "image_url": "https://files.oaiusercontent.com/file-rS7JWgpg9ADv0pW97JGDcg5I?se=2024-01-08T07%3A03%3A04Z&sp=r&sv=2021-08-06&sr=b&rscc=max-age%3D31536000%2C immutable&rscd=attachment%3B filename%3De20f7f65-0518-438b-b3a4-736dae1730e3.webp&sig=lnxCKuzylJo2Wu0dgDjojO6F/UBYHgLTqxVwe22wwMs%3D",
+            "created_at": "2024-01-08T07:15:37.296104",
+            "updated_at": "2024-01-08T07:15:37.296153",
+            "is_deleted": 0
+        }
+    }
+
+
+
+]

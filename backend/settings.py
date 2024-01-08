@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     # 'rest_framework', #장고 연동을 위한 필요
     # 'neo4django',
     'corsheaders',
+    'story',
+    'user',
 ]
 
 #swwagger_setting 을 위한 연동
