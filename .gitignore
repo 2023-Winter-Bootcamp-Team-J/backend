@@ -6,3 +6,7 @@ nextpage-db
 
 # pycharm
 .idea
+
+# cpython
+migrations/
+__pycache__/

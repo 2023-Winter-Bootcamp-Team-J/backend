@@ -15,25 +15,42 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
-# from rest_framework import permissions
-# from drf_yasg.views import get_schema_view
-# from drf_yasg import openapi
+from django.conf.urls.static import static
+from django.conf import settings
+from django.urls import path, include
+from rest_framework import permissions
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
 
-# schema_view = get_schema_view(                  #  API 스키마를 만들기 위한 뷰를 생성하는 데 사용,Swagger UI와 연동되어 API 문서를 제공하고 시각적으로 보여줌
-#     openapi.Info(                               #  API의 기본 정보를 설정
-#         title="remember+ API",
-#         default_version='v1',
-#         description="remember+ API 문서",
-#         terms_of_service="https://www.google.com/policies/terms/",
-#         contact=openapi.Contact(email="kawy.sojung@gmail.com"),
-#         license=openapi.License(name="kawksojung"),
-#     ),
-#     public=True,                                #  API 스키마가 공개되도록 설정
-#     permission_classes=[permissions.AllowAny],  #  누구나 API 스키마를 조회할 수 있도록 허용
-# )
+schema_view = get_schema_view(
+    openapi.Info(
+        title="TeamG API",
+        default_version="v1",
+        description="Test description",
+    ),
+    public=True,
+    permission_classes=[permissions.AllowAny],
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    # path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'), #  /swagger/ 경로에 대한 URL 패턴으로, Swagger UI를 사용하여 API 스키마를 조회
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    # Add more URL patterns here as needed
 ]
+
+urlpatterns += [
+    path(
+        "swagger<format>/", schema_view.without_ui(cache_timeout=0), name="schema-json"
+    ),
+    path(
+        "swagger/",
+        schema_view.with_ui("swagger", cache_timeout=0),
+        name="schema-swagger-ui",
+    ),
+    path("redoc/", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
+]
+
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+

@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles', #swagger ui의 css,js 파일 제공하기 위해 필요한 장고 앱
-    # 'drf_yasg', #swagger  연동을 위해서 ISATALL
+    'drf_yasg', #swagger  연동을 위해서 ISATALL
     # 'django_neomodel', # neo4j연동에 필요
     # 'rest_framework', #장고 연동을 위한 필요
     # 'neo4django',
@@ -143,6 +143,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATIC_ROOT = "static/"
+
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
