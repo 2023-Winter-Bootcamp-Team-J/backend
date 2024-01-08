@@ -44,7 +44,7 @@ services:
           DJANGO_CORS_ORIGIN_WHITELIST: “*”
     container_name: django
     # command : 컨테이너가 띄워질 때 실행하는 명령어 / 서버실행
-    command: sh -c "python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver 0.0.0.0:8000"
+    command: sh -c "python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py loaddata init_data.json && python3 manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./backend:/backend
     restart: on-failure
