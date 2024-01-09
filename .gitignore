@@ -10,3 +10,4 @@ nextpage-db
 # cpython
 migrations/
 __pycache__/
+*.pyc
