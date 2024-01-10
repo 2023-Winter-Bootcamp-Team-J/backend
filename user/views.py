@@ -1,33 +1,52 @@
-from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.decorators import api_view
+# from rest_framework.generics import ListCreateAPIView
+from rest_framework.response import Response
 
 from user.models import User
-from user.serializers import NicknameCreateSerializer
+# from rest_framework.views import APIView
 
-def index(request):
-    return HttpResponse("닉네임 생성 페이지입니다.")
+from user.serializers import UserCreateSerializer
+
+import logging
+logger = logging.getLogger(__name__)
 
 @swagger_auto_schema(
     method='post',
     operation_id='닉네임 생성',
     operation_description='닉네임을 이용해 유저를 생성합니다.',
     tags=['User'],
-    request_body=NicknameCreateSerializer
+    request_body=UserCreateSerializer,
+    responses={
+        201: "User successfully created.",
+        400: "Bad request. Make sure to provide a valid nickname.",
+    }
 )
 @api_view(['POST'])
-def create_nickname(request):
-    serializer = NicknameCreateSerializer(data=request.data)
-    if serializer.is_valid():
-        # 닉네임 중복 검사는 모델에서 unique=True 추가하는 방법 사용
-        serializer.save()
-        return JsonResponse({
-            'message': 'User가 성공적으로 생성되었습니다.',
-            'data': serializer.data
-        }, status=status.HTTP_201_CREATED)
-    return JsonResponse({
-        'message': '유효하지 않은 입력값입니다.',
-        'data': serializer.errors
-    }, status=status.HTTP_400_BAD_REQUEST)
+def create_user(request, *args, **kwargs):
+    """
+    사용자 생성
+    """
+    nickname = request.data.get("nickname")
+    logger.debug("nickname: ",nickname)
+    # 내용 없는 경우
+    if not nickname:
+        return Response({"error": "닉네임을 작성해주세요."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 닉네임 중복 및 공백 검사 수행
+    serializer = UserCreateSerializer(data=request.data)
+    try:
+        serializer.is_valid(raise_exception=True)
+    except serializers.ValidationError as e:
+        logger.error("e: ", e)
+        error_message = {
+            "error": e.detail["nickname"][0],
+            "error_code": e.get_codes()["nickname"][0]
+        }
+        return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
+
+    # 문제 없으면 저장
+    user = User.objects.create(nickname=nickname)
+    return Response({"success": "사용자가 성공적으로 생성되었습니다.", "data": {"nickname" : nickname}}, status=status.HTTP_201_CREATED)
