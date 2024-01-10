@@ -41,9 +41,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles', #swagger ui의 css,js 파일 제공하기 위해 필요한 장고 앱
-    'drf_yasg', #swagger  연동을 위해서 ISATALL
+    'drf_yasg', #swagger  연동을 위해서 INSATALL
     # 'django_neomodel', # neo4j연동에 필요
-    # 'rest_framework', #장고 연동을 위한 필요
+    'rest_framework', #장고 연동을 위한 필요
     # 'neo4django',
     'corsheaders',
     'story',
