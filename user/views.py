@@ -1,3 +1,52 @@
-from django.shortcuts import render
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status, serializers
+from rest_framework.decorators import api_view
+# from rest_framework.generics import ListCreateAPIView
+from rest_framework.response import Response
 
-# Create your views here.
+from user.models import User
+# from rest_framework.views import APIView
+
+from user.serializers import UserCreateSerializer
+
+import logging
+logger = logging.getLogger(__name__)
+
+@swagger_auto_schema(
+    method='post',
+    operation_id='닉네임 생성',
+    operation_description='닉네임을 이용해 유저를 생성합니다.',
+    tags=['User'],
+    request_body=UserCreateSerializer,
+    responses={
+        201: "User successfully created.",
+        400: "Bad request. Make sure to provide a valid nickname.",
+    }
+)
+@api_view(['POST'])
+def create_user(request, *args, **kwargs):
+    """
+    사용자 생성
+    """
+    nickname = request.data.get("nickname")
+    logger.debug("nickname: ",nickname)
+    # 내용 없는 경우
+    if not nickname:
+        return Response({"error": "닉네임을 작성해주세요."}, status=status.HTTP_400_BAD_REQUEST)
+
+    # 닉네임 중복 및 공백 검사 수행
+    serializer = UserCreateSerializer(data=request.data)
+    try:
+        serializer.is_valid(raise_exception=True)
+    except serializers.ValidationError as e:
+        logger.error("e: ", e)
+        error_message = {
+            "error": e.detail["nickname"][0],
+            "error_code": e.get_codes()["nickname"][0]
+        }
+        return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
+
+    # 문제 없으면 저장
+    user = User.objects.create(nickname=nickname)
+    return Response({"success": "사용자가 성공적으로 생성되었습니다.", "data": {"nickname" : nickname}}, status=status.HTTP_201_CREATED)
