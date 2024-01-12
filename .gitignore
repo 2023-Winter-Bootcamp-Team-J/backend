@@ -4,6 +4,8 @@ mysettings.py
 
 nextpage-db
 
+.erlang.cookie
+
 # pycharm
 .idea
 
