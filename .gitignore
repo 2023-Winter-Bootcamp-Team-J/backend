@@ -11,3 +11,6 @@ nextpage-db
 migrations/
 __pycache__/
 *.pyc
+
+# rabbiqmq
+mnesia/
