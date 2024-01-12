@@ -61,7 +61,7 @@ services:
     image: rabbitmq:3-management
     command: rabbitmq-server
     #컨테이너를 stop 시키기 전까지 항상 재시작
-    restart: no
+    restart: unless-stopped
     environment:
       - RABBITMQ_DEFAULT_USER=npage
       - RABBITMQ_DEFAULT_PASS=npage123

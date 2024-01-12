@@ -1,7 +1,6 @@
 # pull official base image
 # 우분투
-FROM python:3.11.7
-USER root
+FROM python:3.9
 
 # 작업 디렉토리 설정
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -22,5 +21,6 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 RUN pip install Pillow
 RUN pip install neo4j-driver
+RUN pip install --upgrade django_neomodel neomodel
 
 COPY . /
