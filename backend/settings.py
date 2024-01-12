@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 from .mysettings import MY_DATABASES, MY_DATABASE_URL, MY_SECRET
 
@@ -31,6 +31,7 @@ SWAGGER_SETTINGS = {
 
 ALLOWED_HOSTS = ['*']
 
+OPENAI_API_KEY = os.getenv('GPT_API_KEY')
 
 # Application definition
 
