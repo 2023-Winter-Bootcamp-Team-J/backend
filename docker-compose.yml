@@ -54,5 +54,46 @@ services:
       - mysql
       - neo4j
 
+
+
+  rabbitmq:
+    hostname: nextpage_host
+    image: rabbitmq:3-management
+    command: rabbitmq-server
+    #컨테이너를 stop 시키기 전까지 항상 재시작
+    restart: unless-stopped
+    environment:
+      - RABBITMQ_DEFAULT_USER=npage
+      - RABBITMQ_DEFAULT_PASS=npage123
+      - RABBITMQ_DEFAULT_VHOST=npage_host
+    ports:
+      - 5672:5672    # 이 포트로는 접속 안됨. 나중에 더 알아보고 추가할 예정
+      - 15672:15672  # 이 포트로 접근해서 guest/guest 입력
+    volumes:
+      - ./backend:/var/lib/rabbitmq
+    # 가상 네트워크 연결
+    networks:
+      - npage
+
+
+  celery:
+    platform: linux/amd64
+    build:
+      context: .
+    restart: unless-stopped
+    depends_on:
+      - "rabbitmq"
+    networks:
+      - npage
+    command: [ "celery","-A", "celery_app", "worker", "--loglevel=info" ]
+    volumes:
+      - ./backend:/backend
+
+
+
 volumes:
   nextpage-db:
+
+
+networks:
+  npage:
