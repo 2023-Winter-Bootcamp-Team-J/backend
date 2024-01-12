@@ -4,7 +4,7 @@ mysettings.py
 
 nextpage-db
 
-.erlang.cookie
+backend/.erlang.cookie
 
 # pycharm
 .idea
@@ -15,4 +15,4 @@ __pycache__/
 *.pyc
 
 # rabbiqmq
-mnesia/
+backend/mnesia/*
