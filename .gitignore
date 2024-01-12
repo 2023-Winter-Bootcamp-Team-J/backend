@@ -4,6 +4,8 @@ mysettings.py
 
 nextpage-db
 
+.erlang.cookie
+
 # pycharm
 .idea
 
@@ -11,3 +13,6 @@ nextpage-db
 migrations/
 __pycache__/
 *.pyc
+
+# rabbiqmq
+mnesia/
