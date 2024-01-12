@@ -34,3 +34,9 @@ class StorySerializer(serializers.ModelSerializer):
         image_url = response["data"][0]["url"]
 
         return image_url
+
+class ExtendedStorySerializer(serializers.ModelSerializer):
+    user_nickname = serializers.CharField(source='user.nickname', read_only=True)
+    class Meta:
+        model = Story
+        fields = ['id', 'user', 'user_nickname', 'content', 'image_url', 'created_at']
