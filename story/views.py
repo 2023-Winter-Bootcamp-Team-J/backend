@@ -90,13 +90,13 @@ def s3_upload(image_url):  # 생성한 이미지를 s3에 저장
                              region_name=settings.AWS_REGION)
 
     # 이미지를 S3에 업로드
-    unique_url = f'{uuid.uuid4()}.jpeg'
-    image_url = f'{settings.MEDIA_URL}{unique_url}'
+    unique_url = f'{uuid.uuid4()}.jpeg' # 파일 명을 고유한 값으로 지정
+    image_url = f'{settings.MEDIA_URL}{unique_url}' # db에 들어갈 접근 가능한 url
     s3_client.put_object(
         Bucket=settings.AWS_STORAGE_BUCKET_NAME,
         Key=unique_url,
         Body=image.content,
-        ContentType="image/jpeg", # 이미지의 적절한 Content-Type을 지정해야 합니다.
+        ContentType="image/jpeg", # 이미지의 적절한 Content-Type 지정
     )
 
     # 업로드된 URL반환

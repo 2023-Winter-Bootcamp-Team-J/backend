@@ -10,7 +10,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = '__all__'
 
-class UserCreateSerializer(serializers.ModelSerializer):
+class NicknameCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['nickname']
