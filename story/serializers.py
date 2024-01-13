@@ -16,13 +16,13 @@ class StorySerializer(serializers.ModelSerializer):
         story = Story.objects.create(**validated_data)
         return story
 
-
-class ExtendedStorySerializer(serializers.ModelSerializer):
+class StoryCreateSerializer(serializers.ModelSerializer): # 스토리 생성 시 request_body 용
     user_id = serializers.IntegerField(source='user.id')
-    user_nickname = serializers.CharField(source='user.nickname', read_only=True)
+    parent_story = serializers.IntegerField()
+
     class Meta:
         model = Story
-        fields = ['id', 'user_id', 'user_nickname', 'content', 'image_url']
+        fields = ['id', 'user_id', 'content', 'parent_story']
 
     def validate_content(self, value):
         """
@@ -30,3 +30,11 @@ class ExtendedStorySerializer(serializers.ModelSerializer):
         """
         if not value:  # 내용이 없는 경우
             raise serializers.ValidationError('내용을 입력하세요.')
+
+
+class ExtendedStorySerializer(serializers.ModelSerializer): # 생성 후 response, 전체 시나리오 조회 시 사용
+    user_id = serializers.IntegerField(source='user.id')
+    user_nickname = serializers.CharField(source='user.nickname', read_only=True)
+    class Meta:
+        model = Story
+        fields = ['id', 'user_id', 'user_nickname', 'content', 'image_url']

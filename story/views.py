@@ -1,6 +1,6 @@
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
-from .serializers import ExtendedStorySerializer
+from .serializers import ExtendedStorySerializer, StoryCreateSerializer
 import os
 import uuid
 
@@ -10,12 +10,13 @@ import requests
 from rest_framework import status, serializers
 from rest_framework.response import Response
 
-from .models import Story
-from .serializers import StorySerializer
 from backend import settings
 from dotenv import load_dotenv
 import logging
-
+from neo_db.models import Story as NeoStory
+from story.models import Story
+from neo_db.apps import NeoDbConfig
+from datetime import datetime
 logger = logging.getLogger(__name__)
 
 load_dotenv()  # env 파일 로드
@@ -33,7 +34,7 @@ openai.api_key = os.getenv("GPT_API_KEY")
     operation_id='스토리 생성',
     operation_description='내용을 작성하여 스토리를 생성합니다.',
     tags=['Story'],
-    request_body=ExtendedStorySerializer,
+    request_body=StoryCreateSerializer,
 )
 @api_view(['GET', 'POST'])
 def story_list_create(request, *args, **kwargs):
@@ -46,11 +47,12 @@ def story_list_create(request, *args, **kwargs):
         """
         스토리 생성
         """
+        parent_story = request.data.get('parent_story') # 부모 스토리 아이디
         content = request.data.get('content')
         user_id = request.data.get('user_id')
 
         # 내용 공백 검사
-        serializer = ExtendedStorySerializer(data=request.data)
+        serializer = StoryCreateSerializer(data=request.data)
         try:
             serializer.is_valid(raise_exception=True)
         except serializers.ValidationError as e:
@@ -64,13 +66,41 @@ def story_list_create(request, *args, **kwargs):
         temp_url = generate_image(content)  # ai 이미지 생성 후 임시 url
         image_url = s3_upload(temp_url)  # s3 업로드 후 버킷 url
 
-        # serializer.save(image_url=image_url)
-        story = Story.objects.create(user_id=user_id, content=content, image_url=image_url)
-        serializer = ExtendedStorySerializer(story)
-        logger.error("serializer: ", serializer)
+        # if serializer.is_valid():
+        #     story_instance = serializer.save(image_url=image_url)  # mysql 에 저장 후 인스턴스 반환 (neo4j 데이터에 넣기위해)
+
+            # story_id = story_instance.id
+            # created_at = story_instance.created_at
+        # new_story = NeoStory(content=content, image_url=image_url, is_deleted=False)
+        # new_story.save()
+
+        with NeoDbConfig.session_scope() as session:  # neo4j 불러오기
+            # Neo4j에 스토리 저장
+            fields = {
+                'content': content,
+                'is_deleted': False,
+                'created_at': datetime.now(),
+                'updated_at': datetime.now(),
+                'image_url': image_url,
+            }
+            NeoDbConfig.create_story(session, fields)  # 스토리 생성한 것 neo4j 에 집어넣기
+
+        if not parent_story: # parent_id가 0일 시(루트 스토리) mysql 저장
+            story = Story.objects.create(user_id=user_id, content=content, image_url=image_url)
+            mysqlstory = ExtendedStorySerializer(story)
+            logger.error("mysqlstory: ", mysqlstory)
+            return Response({
+                'message': '루트 스토리가 생성되었습니다.',
+                'data': mysqlstory.data}, status=status.HTTP_201_CREATED)
+
         return Response({
-            'success': '스토리가 생성되었습니다.',
-            'data': serializer.data}, status=status.HTTP_201_CREATED)
+            'message': '분기 스토리가 생성되었습니다.',
+            'data': {
+                'content': content,
+                'image_url': image_url,
+            }
+        }, status=status.HTTP_201_CREATED)
+
 
 def generate_image(content):
 

@@ -1,5 +1,10 @@
+from contextlib import contextmanager
+
 from django.apps import AppConfig
 from neo4j import GraphDatabase
+
+from backend import mysettings
+
 
 class NeoDbConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
@@ -80,28 +85,46 @@ class NeoDbConfig(AppConfig):
 
         driver.close()
 
-    def create_user(self, session, fields):
+    def create_user(session, fields):
         # 사용자 노드 생성 쿼리
         query = """
         CREATE (u:User {user_id: $user_id, nickname: $nickname, created_at: $created_at, updated_at: $updated_at, is_deleted: $is_deleted})
         """
         session.run(query, parameters=fields)
 
-    def create_story(self, session, fields):
+    @staticmethod
+    def create_story(session, fields):
         # 스토리 노드 생성 쿼리
         create_story_query = """
-        CREATE (s:Story {story_id: $story_id, content: $content, created_at: $created_at, updated_at: $updated_at, is_deleted: $is_deleted, image_url: $image_url})
+        CREATE (s:Story {content: $content, created_at: $created_at, updated_at: $updated_at, is_deleted: $is_deleted, image_url: $image_url})
         """
         session.run(create_story_query, parameters=fields)
 
         # 스토리 간의 관계 설정 쿼리
         for child_id in fields.get("child_stories", []):
-            self.create_story_relationship(session, fields["story_id"], child_id)
-
-    def create_story_relationship(self, session, parent_id, child_id):
+            NeoDbConfig.create_story_relationship(session, fields["story_id"], child_id)
+    @staticmethod
+    def create_story_relationship(session, parent_id, child_id):
         # 부모 스토리와 자식 스토리 간의 관계 생성 쿼리
         query = """
         MATCH (parent:Story {story_id: $parent_id}), (child:Story {story_id: $child_id})
         MERGE (parent)-[:HAS_CHILD]->(child)
         """
         session.run(query, parameters={"parent_id": parent_id, "child_id": child_id})
+
+    @staticmethod
+    @contextmanager
+    def session_scope():
+        # Neo4j 데이터베이스 연결 설정
+        uri = "bolt://neo4j:7687"
+        user = "neo4j"
+        password = "nextpage"
+        driver = GraphDatabase.driver(uri, auth=(user, password))
+        session = driver.session()
+
+        try:
+            yield session
+        finally:
+            session.close()
+            driver.close()
+

@@ -148,7 +148,7 @@ def load_data_to_neo4j(file_path):
         for item in data:
             fields = item['fields']
             if item['model'] == 'story.Story':
-                # 부모 스토리와의 관계 생성
+                # 부모 스토리와의 관계 생성 자식 -> 부모
                 # if fields['parent_story']:
                 #     session.run(
                 #         "MATCH (parent:Story {story_id: $parent_story_id}), (child:Story {story_id: $child_story_id}) CREATE (child)-[:ParentStory]->(parent)",
@@ -156,7 +156,7 @@ def load_data_to_neo4j(file_path):
                 #         child_story_id=fields['story_id']
                 #     )
 
-                # 자식 스토리들과의 관계 생성
+                # 자식 스토리들과의 관계 생성 부모 -> 자식
                 for child_id in fields['child_stories']:
                     session.run(
                         "MATCH (parent:Story {story_id: $parent_story_id}), (child:Story {story_id: $child_story_id}) CREATE (parent)-[:ChildStory]->(child)",
