@@ -7,7 +7,7 @@ import uuid
 import boto3
 import openai
 import requests
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.response import Response
 
 from .models import Story
@@ -18,7 +18,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-load_dotenv()  # 이 부분이 .env 파일을 로드합니다.
+load_dotenv()  # env 파일 로드
 
 openai.api_key = os.getenv("GPT_API_KEY")
 
@@ -33,31 +33,44 @@ openai.api_key = os.getenv("GPT_API_KEY")
     operation_id='스토리 생성',
     operation_description='내용을 작성하여 스토리를 생성합니다.',
     tags=['Story'],
-    request_body=StorySerializer,
+    request_body=ExtendedStorySerializer,
 )
-@api_view(['GET' ,'POST'])
-def story_list_create(request):
+@api_view(['GET', 'POST'])
+def story_list_create(request, *args, **kwargs):
     if request.method == 'GET':
         stories = Story.objects.all()
         serializer = ExtendedStorySerializer(stories, many=True)
         return Response(serializer.data)
 
     elif request.method == 'POST':
-        serializer = StorySerializer(data=request.data)
+        """
+        스토리 생성
+        """
+        content = request.data.get('content')
+        user_id = request.data.get('user_id')
 
-        if serializer.is_valid():
-            content = serializer.validated_data.get('content')
+        # 내용 공백 검사
+        serializer = ExtendedStorySerializer(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except serializers.ValidationError as e:
+            logger.error("e: ", e)
+            error_message = {
+                "error": e.detail["content"][0],
+                "error_code": e.get_codes()["content"][0]
+            }
+            return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
 
-            temp_url = generate_image(content) # ai 이미지 생성 후 임시 url
-            image_url = s3_upload(temp_url) # s3 업로드 후 버킷 url
+        temp_url = generate_image(content)  # ai 이미지 생성 후 임시 url
+        image_url = s3_upload(temp_url)  # s3 업로드 후 버킷 url
 
-            serializer.save(image_url=image_url)
-            return Response({
-                'message': '스토리가 생성되었습니다.',
-                'data': serializer.data}, status=status.HTTP_201_CREATED)
+        # serializer.save(image_url=image_url)
+        story = Story.objects.create(user_id=user_id, content=content, image_url=image_url)
+        serializer = ExtendedStorySerializer(story)
+        logger.error("serializer: ", serializer)
         return Response({
-            'message': '유효하지 않은 값입니다.',
-            'error': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+            'success': '스토리가 생성되었습니다.',
+            'data': serializer.data}, status=status.HTTP_201_CREATED)
 
 def generate_image(content):
 
@@ -124,16 +137,3 @@ def story_destroy(request, id):
     if request.method == 'DELETE':
         story.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-@swagger_auto_schema(
-    method='get',
-    operation_id='시나리오 전체 조회',
-    operation_description='전체 시나리오를 조회합니다.',
-    tags=['Story'],
-)
-@api_view(['GET'])
-def all_scenario(request):
-    if request.method == 'GET':
-        stories = Story.objects.all()
-        serializer = ExtendedStorySerializer(stories, many=True)
-        return Response(serializer.data)

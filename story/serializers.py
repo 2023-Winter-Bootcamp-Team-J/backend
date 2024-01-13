@@ -18,7 +18,15 @@ class StorySerializer(serializers.ModelSerializer):
 
 
 class ExtendedStorySerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(source='user.id')
     user_nickname = serializers.CharField(source='user.nickname', read_only=True)
     class Meta:
         model = Story
-        fields = ['id', 'user', 'user_nickname', 'content', 'image_url', 'created_at']
+        fields = ['id', 'user_id', 'user_nickname', 'content', 'image_url']
+
+    def validate_content(self, value):
+        """
+        내용 공백 검사
+        """
+        if not value:  # 내용이 없는 경우
+            raise serializers.ValidationError('내용을 입력하세요.')
