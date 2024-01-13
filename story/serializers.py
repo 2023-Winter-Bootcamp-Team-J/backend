@@ -13,7 +13,6 @@ class StorySerializer(serializers.ModelSerializer):
         read_only_fields = ['image_url']  # Keep image_url as read-only
 
     def create(self, validated_data):
-        # Directly create a Story object without a user
         story = Story.objects.create(**validated_data)
         return story
 

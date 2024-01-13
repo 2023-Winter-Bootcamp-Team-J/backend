@@ -23,17 +23,23 @@ load_dotenv()  # 이 부분이 .env 파일을 로드합니다.
 openai.api_key = os.getenv("GPT_API_KEY")
 
 @swagger_auto_schema(
+    method='get',
+    operation_id='시나리오 전체 조회',
+    operation_description='전체 시나리오를 조회합니다.',
+    tags=['Story'],
+)
+@swagger_auto_schema(
     method='post',
     operation_id='스토리 생성',
     operation_description='내용을 작성하여 스토리를 생성합니다.',
     tags=['Story'],
     request_body=StorySerializer,
 )
-@api_view(['POST'])
+@api_view(['GET' ,'POST'])
 def story_list_create(request):
     if request.method == 'GET':
         stories = Story.objects.all()
-        serializer = StorySerializer(stories, many=True)
+        serializer = ExtendedStorySerializer(stories, many=True)
         return Response(serializer.data)
 
     elif request.method == 'POST':
