@@ -20,6 +20,8 @@ services:
       - --collation-server=utf8mb4_unicode_ci
     volumes:
       - ./nextpage-db/mysql:/usr/src/mysql
+    networks:
+      - npage
 
   neo4j:
     container_name: neo4j
@@ -33,6 +35,9 @@ services:
     volumes:
       - ./nextpage-db/neo4j/data:/data
       - ./nextpage-db/neo4j/logs:/logs
+    networks:
+      - npage
+
 
   backend:
     # FIXME: 프로젝트 루트경로기준으로 수정해야함.
@@ -50,6 +55,8 @@ services:
     restart: on-failure
     ports:
       - "8000:8000"
+    networks:
+      - npage
     depends_on:
       - mysql
       - neo4j
