@@ -96,7 +96,7 @@ class NeoDbConfig(AppConfig):
     def create_story(session, fields):
         # 스토리 노드 생성 쿼리
         create_story_query = """
-        CREATE (s:Story {content: $content, created_at: $created_at, updated_at: $updated_at, is_deleted: $is_deleted, image_url: $image_url})
+        CREATE (s:Story {user_id: $user_id ,content: $content, created_at: $created_at, updated_at: $updated_at, is_deleted: $is_deleted, image_url: $image_url})
         """
         session.run(create_story_query, parameters=fields)
 
@@ -108,11 +108,22 @@ class NeoDbConfig(AppConfig):
         # 부모 스토리와 자식 스토리 간의 관계 생성 쿼리
 
         query = """
-        MATCH (a:Story), (b:Story{image_url: $child_url})
-        WHERE ID(a) = $parent_id
-        CREATE (a)-[:CHILD]->(b)
+        MATCH (parent:Story), (child:Story{image_url: $child_url})
+        WHERE ID(parent) = $parent_id
+        CREATE (parent)-[:CHILD]->(child)
         """
         session.run(query, parameters={"parent_id": parent_id, "child_url": child_url})
+
+    @staticmethod
+    def update_child_content(session, parent_id):
+        # child_content 업데이트 쿼리
+        query = """
+        MATCH (parent:Story) WHERE ID(parent) = $parent_id
+        MATCH (parent)-[:CHILD]->(child:Story)
+        WITH parent, collect(child.content) AS childContents
+        SET parent.child_content = childContents
+        """
+        session.run(query, parameters={"parent_id": parent_id})
 
     @staticmethod
     @contextmanager
