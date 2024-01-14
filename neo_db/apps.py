@@ -96,13 +96,13 @@ class NeoDbConfig(AppConfig):
     def create_story(session, fields):
         # 스토리 노드 생성 쿼리
         create_story_query = """
-        CREATE (s:Story {user_id: $user_id ,content: $content, created_at: $created_at, updated_at: $updated_at, is_deleted: $is_deleted, image_url: $image_url})
+        CREATE (s:Story {user_nickname: $user_nickname, content: $content, created_at: $created_at, updated_at: $updated_at, is_deleted: $is_deleted, image_url: $image_url})
         """
         session.run(create_story_query, parameters=fields)
 
         # 스토리 간의 관계 설정 쿼리
-        for child_id in fields.get("child_stories", []):
-            NeoDbConfig.create_story_relationship(session, fields["story_id"], child_id)
+        # for child_id in fields.get("child_stories", []):
+        #     NeoDbConfig.create_story_relationship(session, fields["story_id"], child_id)
     @staticmethod
     def create_story_relationship(session, parent_id, child_url):
         # 부모 스토리와 자식 스토리 간의 관계 생성 쿼리
@@ -123,6 +123,17 @@ class NeoDbConfig(AppConfig):
         WITH parent, collect(child.content) AS childContents
         SET parent.child_content = childContents
         """
+        session.run(query, parameters={"parent_id": parent_id})
+
+    @staticmethod
+    def update_child_id(session, parent_id):
+        # child_id 업데이트 쿼리
+        query = """
+            MATCH (parent:Story) WHERE ID(parent) = $parent_id
+            MATCH (parent)-[:CHILD]->(child:Story)
+            WITH parent, collect(ID(child)) AS childIds
+            SET parent.child_id = childIds
+            """
         session.run(query, parameters={"parent_id": parent_id})
 
     @staticmethod
