@@ -1,4 +1,3 @@
-from django.shortcuts import render
 
 # Create your views here.
 from rest_framework import views, status
@@ -7,7 +6,6 @@ from .models import Story, User
 from .serializers import StorySerializer, UserSerializer
 from neo4j import GraphDatabase
 import backend.mysettings as mysettings  # mysettings를 임포트합니다.
-
 # Neo4j 드라이버 생성
 # mysettings에서 설정을 로드합니다.
 driver = GraphDatabase.driver(mysettings.NEO4J_BOLT_URL, auth=(mysettings.NEO4J_USERNAME, mysettings.NEO4J_PASSWORD))

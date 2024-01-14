@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 import os
+import sys
 from pathlib import Path
 from .mysettings import MY_DATABASES, MY_DATABASE_URL, MY_SECRET
 from dotenv import load_dotenv
@@ -18,7 +19,6 @@ load_dotenv() # env 파일에 있는 값 얻어오기
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -149,7 +149,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-
+NEO4J_BOLT_URL = 'bolt://neo4j:7687'
+NEO4J_USERNAME = 'neo4j'
+NEO4J_PASSWORD = 'nextpage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field

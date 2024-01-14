@@ -1,4 +1,6 @@
+from django.contrib.admin.templatetags.admin_list import results
 from drf_yasg.utils import swagger_auto_schema
+from neo4j import GraphDatabase
 from rest_framework.decorators import api_view
 
 from .serializers import ExtendedStorySerializer, StoryCreateSerializer
@@ -10,21 +12,18 @@ import openai
 import requests
 from rest_framework import status, serializers
 from rest_framework.response import Response
-from neo4j import Record
-
-
 from backend import settings
 from dotenv import load_dotenv
 import logging
-from neo_db.models import Story as NeoStory
 from user.models import User
 from story.models import Story
 from neo_db.apps import NeoDbConfig
 from datetime import datetime
+
+
 logger = logging.getLogger(__name__)
-
-load_dotenv()  # env 파일 로드
-
+driver = GraphDatabase.driver(settings.NEO4J_BOLT_URL, auth=(settings.NEO4J_USERNAME, settings.NEO4J_PASSWORD))
+load_dotenv()  # 이 부분이 .env 파일을 로드합니다.
 openai.api_key = os.getenv("GPT_API_KEY")
 
 @swagger_auto_schema(
@@ -33,6 +32,7 @@ openai.api_key = os.getenv("GPT_API_KEY")
     operation_description='전체 시나리오를 조회합니다.',
     tags=['Story'],
 )
+
 @swagger_auto_schema(
     method='post',
     operation_id='스토리 생성',
@@ -40,6 +40,7 @@ openai.api_key = os.getenv("GPT_API_KEY")
     tags=['Story'],
     request_body=StoryCreateSerializer,
 )
+
 @api_view(['GET', 'POST'])
 def story_list_create(request, *args, **kwargs):
     if request.method == 'GET':
@@ -192,3 +193,91 @@ def story_detail(request, story_id):
             'messeage': f"스토리를 조회하였습니다. [id:{story_id}]",
             'data': story_details
         }, status=status.HTTP_200_OK)
+
+@swagger_auto_schema(
+    method='get',
+    operation_id='전체 스토리 조회',
+    operation_description='전체 스토리를 조회합니다.',
+    tags=['Story'],
+)
+
+@api_view(['GET'])
+def story_all(request, story_id):
+    """
+    스토리와 그 자식 스토리들을 조회 (datetime 필드 제외)
+    """
+    with NeoDbConfig.session_scope() as session: # 조회할 때 깊이 탐색 순서로 조회함
+        query = """
+            MATCH (root:Story)-[r:CHILD*0..]->(child:Story)
+            WHERE ID(root) = $story_id
+            RETURN ID(child) AS child_id, child.child_id, child.child_content, child.user_nickname, child.content, child.image_url
+            """
+        results = session.run(query, story_id=story_id).data()
+
+        if not results:  # 존재하지 않는 경우
+            return Response({
+                'message': "스토리가 존재하지 않습니다.",
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        story_list = []
+        for result in results:
+            story_detail = {
+                "story": {
+                    "user_nickname": result["child.user_nickname"],
+                    "story_id": result["child_id"],
+                    "content": result["child.content"],
+                    "image_url": result["child.image_url"],
+                    "child_id": result["child.child_id"],
+                    "child_content": result["child.child_content"],
+                }
+            }
+            story_list.append(story_detail)
+
+        return Response({
+            'message': f"스토리와 자식 스토리를 조회하였습니다. [id:{story_id}]",
+            'data': story_list
+        }, status=status.HTTP_200_OK)
+
+# @api_view(['GET'])
+# def story_all(request, story_id):
+#     """
+#     스토리 전체 조회
+#     """
+#     with NeoDbConfig.session_scope() as session:
+#         query = """
+#             MATCH (root:Story)-[r:CHILD*]->(child:Story)
+#             WHERE ID(root) = story_id
+#             RETURN root, r, child
+#             """
+#         result = session.run(query, story_id=story_id).single()
+#
+#         if not result: # 존재하지 않는 경우
+#             return Response({
+#                 'messeage': "스토리가 존재하지 않습니다.",
+#             }, status=status.HTTP_400_BAD_REQUEST)
+#
+#         story_details = {
+#             "story_id": result["s.story_id"],
+#             "content": result["s.content"],
+#             "image_url": result["s.image_url"],
+#             "child_id:": result["s.child_id"],
+#         }
+#
+#         return Response({
+#             'messeage': f"시나리오를 조회하였습니다. [id:{story_id}]",
+#             'data': story_details
+#         }, status=status.HTTP_200_OK)
+
+
+@swagger_auto_schema(
+    method='get',
+    operation_id='시나리오 전체 조회',
+    operation_description='전체 시나리오를 조회합니다.',
+    tags=['Story'],
+)
+@api_view(['GET'])
+def all_scenario(request):
+    if request.method == 'GET':
+        stories = Story.objects.all()
+        serializer = ExtendedStorySerializer(stories, many=True)
+        return Response(serializer.data)

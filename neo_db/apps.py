@@ -15,7 +15,7 @@ class NeoDbConfig(AppConfig):
 
     def import_data_to_neo4j(self):
         # Neo4j 데이터베이스 연결 설정
-        uri = "bolt://localhost:7474"
+        uri = "bolt://localhost:7687"
         user = "neo4j"  # 사용자 이름
         password = "nextpage"  # 비밀번호
         driver = GraphDatabase.driver(uri, auth=(user, password))
