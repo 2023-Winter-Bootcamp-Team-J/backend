@@ -1,11 +1,16 @@
 from rest_framework import serializers
+
+from story.serializers import StorySerializer
 from .models import Story, User
 
 class StorySerializer(serializers.ModelSerializer):
+    parent_story = StorySerializer(read_only=True)
+    child_stories = StorySerializer(many=True, read_only=True)
+
     class Meta:
         model = Story
         fields = ['story_id', 'content', 'createdAt', 'updatedAt', 'is_deleted', 'image_url', 'parent_story', 'child_stories']
-
+        read_only_fields = ['story_id']
     def create(self, validated_data):
         return Story.objects.create(**validated_data)
 
@@ -18,10 +23,12 @@ class StorySerializer(serializers.ModelSerializer):
         return instance
 
 class UserSerializer(serializers.ModelSerializer):
+    stories_written = StorySerializer(many=True, read_only=True)
+
     class Meta:
         model = User
         fields = ['user_id', 'nickname', 'createdAt', 'updatedAt', 'is_deleted', 'stories_written']
-
+        read_only_fields = ['user_id']
     def create(self, validated_data):
         return User.objects.create(**validated_data)
 

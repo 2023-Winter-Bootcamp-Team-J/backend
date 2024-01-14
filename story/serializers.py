@@ -1,7 +1,4 @@
-import openai
 from rest_framework import serializers
-
-from user.models import User
 from .models import Story
 
 class StorySerializer(serializers.ModelSerializer): # neo4j 스토리 1개 조회 시 사용
@@ -39,3 +36,4 @@ class ExtendedStorySerializer(serializers.ModelSerializer): # 생성 후 respons
     class Meta:
         model = Story
         fields = ['id', 'user_id', 'user_nickname', 'content', 'image_url']
+

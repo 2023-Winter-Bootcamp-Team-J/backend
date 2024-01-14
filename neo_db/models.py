@@ -31,4 +31,3 @@ class User(StructuredNode):
 
     # 사용자가 작성한 스토리
     stories_written = RelationshipTo(Story, 'AUTHORED')
-
