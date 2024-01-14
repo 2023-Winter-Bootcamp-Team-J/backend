@@ -10,7 +10,7 @@ def load_data_to_neo4j(file_path):
     user = "neo4j"
     password = "nextpage"
 
-    # 파일에서 데이터 로드
+    # 파일에서 데이터 로드 -> 안돼서 그냥 데이터 집어넣기로함
     with open(file_path, 'r') as file:
         #data = json.load(file)
         data = [

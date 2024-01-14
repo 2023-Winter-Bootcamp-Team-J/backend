@@ -104,13 +104,15 @@ class NeoDbConfig(AppConfig):
         for child_id in fields.get("child_stories", []):
             NeoDbConfig.create_story_relationship(session, fields["story_id"], child_id)
     @staticmethod
-    def create_story_relationship(session, parent_id, child_id):
+    def create_story_relationship(session, parent_id, child_url):
         # 부모 스토리와 자식 스토리 간의 관계 생성 쿼리
+
         query = """
-        MATCH (parent:Story {story_id: $parent_id}), (child:Story {story_id: $child_id})
-        MERGE (parent)-[:HAS_CHILD]->(child)
+        MATCH (a:Story), (b:Story{image_url: $child_url})
+        WHERE ID(a) = $parent_id
+        CREATE (a)-[:CHILD]->(b)
         """
-        session.run(query, parameters={"parent_id": parent_id, "child_id": child_id})
+        session.run(query, parameters={"parent_id": parent_id, "child_url": child_url})
 
     @staticmethod
     @contextmanager

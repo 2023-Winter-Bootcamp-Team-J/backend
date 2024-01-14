@@ -66,14 +66,6 @@ def story_list_create(request, *args, **kwargs):
         temp_url = generate_image(content)  # ai 이미지 생성 후 임시 url
         image_url = s3_upload(temp_url)  # s3 업로드 후 버킷 url
 
-        # if serializer.is_valid():
-        #     story_instance = serializer.save(image_url=image_url)  # mysql 에 저장 후 인스턴스 반환 (neo4j 데이터에 넣기위해)
-
-            # story_id = story_instance.id
-            # created_at = story_instance.created_at
-        # new_story = NeoStory(content=content, image_url=image_url, is_deleted=False)
-        # new_story.save()
-
         with NeoDbConfig.session_scope() as session:  # neo4j 불러오기
             # Neo4j에 스토리 저장
             fields = {
@@ -84,8 +76,10 @@ def story_list_create(request, *args, **kwargs):
                 'image_url': image_url,
             }
             NeoDbConfig.create_story(session, fields)  # 스토리 생성한 것 neo4j 에 집어넣기
+            if parent_story >= 0:
+                NeoDbConfig.create_story_relationship(session, parent_story, image_url)
 
-        if not parent_story: # parent_id가 0일 시(루트 스토리) mysql 저장
+        if parent_story < 0: # parent_id가 0일 시(루트 스토리) mysql 저장
             story = Story.objects.create(user_id=user_id, content=content, image_url=image_url)
             mysqlstory = ExtendedStorySerializer(story)
             logger.error("mysqlstory: ", mysqlstory)
