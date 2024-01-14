@@ -1,5 +1,6 @@
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
+
 from .serializers import ExtendedStorySerializer, StoryCreateSerializer
 import os
 import uuid
@@ -9,11 +10,14 @@ import openai
 import requests
 from rest_framework import status, serializers
 from rest_framework.response import Response
+from neo4j import Record
+
 
 from backend import settings
 from dotenv import load_dotenv
 import logging
 from neo_db.models import Story as NeoStory
+from user.models import User
 from story.models import Story
 from neo_db.apps import NeoDbConfig
 from datetime import datetime
@@ -50,6 +54,7 @@ def story_list_create(request, *args, **kwargs):
         parent_story = request.data.get('parent_story') # 부모 스토리 아이디
         content = request.data.get('content')
         user_id = request.data.get('user_id')
+        user_nickname = User.objects.get(id=user_id).nickname
 
         # 내용 공백 검사
         serializer = StoryCreateSerializer(data=request.data)
@@ -68,22 +73,25 @@ def story_list_create(request, *args, **kwargs):
 
         with NeoDbConfig.session_scope() as session:  # neo4j 불러오기
             child_story = [] # 자식 스토리를 저장하기 위한 배열 , 처음에는 빈 배열이다.
+            child_id = [] # 자식 스토리 Id를 저장
             # Neo4j에 스토리 저장
             fields = {
-                'user_id': user_id,
+                'user_nickname': user_nickname,
                 'content': content,
                 'is_deleted': False,
                 'created_at': datetime.now(),
                 'updated_at': datetime.now(),
                 'image_url': image_url,
+                'child_id': child_id,
                 'child_content': child_story,
             }
             NeoDbConfig.create_story(session, fields)  # 스토리 생성한 것 neo4j 에 집어넣기
             if parent_story >= 0: # 분기 스토리일 경우 부모와의 관계 업데이트
                 NeoDbConfig.create_story_relationship(session, parent_story, image_url)
                 NeoDbConfig.update_child_content(session, parent_story)
+                NeoDbConfig.update_child_id(session, parent_story)
 
-        if parent_story < 0: # parent_id가 0일 시(루트 스토리) mysql 저장
+        if parent_story < 0: # parent_id가 음수일 시(루트 스토리) mysql 저장
             story = Story.objects.create(user_id=user_id, content=content, image_url=image_url)
             mysqlstory = ExtendedStorySerializer(story)
             logger.error("mysqlstory: ", mysqlstory)
@@ -117,7 +125,6 @@ def generate_image(content):
     )
     assistant_response = completion['choices'][0]['message']['content'] + prompt_keword
 
-
     messages.append({"role": "assistant", "content": assistant_response})
 
     prompt = assistant_response[0:999] # 프롬프트가 1000자가 최대이므로
@@ -150,18 +157,38 @@ def s3_upload(image_url):  # 생성한 이미지를 s3에 저장
     return image_url
 
 @swagger_auto_schema(
-    method='delete',
-    operation_id='시나리오 삭제',
-    operation_description='시나리오를 삭제합니다',
+    method='get',
+    operation_id='단일 스토리 조회',
+    operation_description='한 스토리를 조회합니다.',
     tags=['Story'],
 )
-@api_view(['DELETE'])
-def story_destroy(request, id):
-    try:
-        story = Story.objects.get(id=id)
-    except Story.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+@api_view(['GET'])
+def story_detail(request, story_id):
+    """
+    스토리 1개 조회
+    """
+    with NeoDbConfig.session_scope() as session:
+        query = """
+            MATCH (s:Story)
+            WHERE ID(s) = $story_id
+            RETURN s.user_nickname, s.content, s.image_url, s.child_id, s.child_content
+            """
+        result = session.run(query, story_id=story_id).single()
 
-    if request.method == 'DELETE':
-        story.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if not result: # 존재하지 않는 경우
+            return Response({
+                'messeage': "스토리가 존재하지 않습니다.",
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        story_details = {
+            "user_nickname": result["s.user_nickname"],
+            "content": result["s.content"],
+            "image_url": result["s.image_url"],
+            "child_id:": result["s.child_id"],
+            "child_content": result["s.child_content"]
+        }
+
+        return Response({
+            'messeage': f"스토리를 조회하였습니다. [id:{story_id}]",
+            'data': story_details
+        }, status=status.HTTP_200_OK)
