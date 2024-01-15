@@ -1,4 +1,5 @@
 from django.contrib.admin.templatetags.admin_list import results
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from neo4j import GraphDatabase
 from rest_framework.decorators import api_view
@@ -55,6 +56,7 @@ def story_list_create(request, *args, **kwargs):
         parent_story = request.data.get('parent_story') # 부모 스토리 아이디
         content = request.data.get('content')
         user_id = request.data.get('user_id')
+        image_url = request.data.get('image_url')
         user_nickname = User.objects.get(id=user_id).nickname
 
         # 내용 공백 검사
@@ -69,8 +71,7 @@ def story_list_create(request, *args, **kwargs):
             }
             return Response(error_message, status=status.HTTP_400_BAD_REQUEST)
 
-        temp_url = generate_image(content)  # ai 이미지 생성 후 임시 url
-        image_url = s3_upload(temp_url)  # s3 업로드 후 버킷 url
+        image_url = s3_upload(image_url)  # s3 업로드 후 버킷 url
 
         with NeoDbConfig.session_scope() as session:  # neo4j 불러오기
             child_story = [] # 자식 스토리를 저장하기 위한 배열 , 처음에는 빈 배열이다.
@@ -109,7 +110,22 @@ def story_list_create(request, *args, **kwargs):
         }, status=status.HTTP_201_CREATED)
 
 
-def generate_image(content):
+@swagger_auto_schema(
+    method='post',
+    operation_id='이미지 생성',
+    operation_description='내용에 맞게 ai 이미지를 생성합니다.',
+    tags=['Story'],
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'content': openapi.Schema(type=openapi.TYPE_STRING),
+        },
+        required=['content'],
+    ),
+)
+@api_view(['POST'])
+def generate_image(request): # 재생성을 위해 분리함
+    content = request.data.get('content', None)
 
     messages = []
     promptmessages = "이야기를 기반으로 dall-e api 기반으로 그림을 생성하는 서비스야. 내가 이야기를 작성하면 너가 장면이나 인물 묘사를 훨씬 구체적으로 영어로 변경해주고 이야기와 구체적 묘사들을 영어로 바꿔서 출력해줘. 그리고 너가 생각하기에 그림의 중요 포인트들을 문장 맨 뒤에 키워드로 추가해줘. 사람과 관련된 키워드가 나오면 인물이 들어가도록 키워드에 추가해줘. 날씨나 분위기에 대한 키워드가 너오면 그것도 추가해줘\n"
@@ -133,7 +149,12 @@ def generate_image(content):
     response = openai.Image.create(prompt=prompt, n=1, size="256x256") # gpt에게 받은 프롬프팅을 전달하여 그림생성
     image_url = response["data"][0]["url"]
 
-    return image_url  # 임시로 이미지 url을 리턴하도록 설정
+    return Response({
+        'message': '이미지가 생성되었습니다.',
+        'data': {
+            'image_url': image_url,
+        }
+    }, status=status.HTTP_201_CREATED)
 
 def s3_upload(image_url):  # 생성한 이미지를 s3에 저장
     # 이미지 다운로드
@@ -237,37 +258,6 @@ def story_all(request, story_id):
             'message': f"스토리와 자식 스토리를 조회하였습니다. [id:{story_id}]",
             'data': story_list
         }, status=status.HTTP_200_OK)
-
-# @api_view(['GET'])
-# def story_all(request, story_id):
-#     """
-#     스토리 전체 조회
-#     """
-#     with NeoDbConfig.session_scope() as session:
-#         query = """
-#             MATCH (root:Story)-[r:CHILD*]->(child:Story)
-#             WHERE ID(root) = story_id
-#             RETURN root, r, child
-#             """
-#         result = session.run(query, story_id=story_id).single()
-#
-#         if not result: # 존재하지 않는 경우
-#             return Response({
-#                 'messeage': "스토리가 존재하지 않습니다.",
-#             }, status=status.HTTP_400_BAD_REQUEST)
-#
-#         story_details = {
-#             "story_id": result["s.story_id"],
-#             "content": result["s.content"],
-#             "image_url": result["s.image_url"],
-#             "child_id:": result["s.child_id"],
-#         }
-#
-#         return Response({
-#             'messeage': f"시나리오를 조회하였습니다. [id:{story_id}]",
-#             'data': story_details
-#         }, status=status.HTTP_200_OK)
-
 
 @swagger_auto_schema(
     method='get',

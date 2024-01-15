@@ -20,7 +20,7 @@ class StoryCreateSerializer(serializers.ModelSerializer): # 스토리 생성 시
 
     class Meta:
         model = Story
-        fields = ['id', 'user_id', 'content', 'parent_story']
+        fields = ['id', 'user_id', 'content', 'image_url', 'parent_story']
 
     def validate_content(self, value):
         """
