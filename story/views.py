@@ -259,15 +259,3 @@ def story_all(request, story_id):
             'data': story_list
         }, status=status.HTTP_200_OK)
 
-@swagger_auto_schema(
-    method='get',
-    operation_id='시나리오 전체 조회',
-    operation_description='전체 시나리오를 조회합니다.',
-    tags=['Story'],
-)
-@api_view(['GET'])
-def all_scenario(request):
-    if request.method == 'GET':
-        stories = Story.objects.all()
-        serializer = ExtendedStorySerializer(stories, many=True)
-        return Response(serializer.data)
