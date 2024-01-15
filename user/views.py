@@ -46,3 +46,16 @@ def create_nickname(request, *args, **kwargs):
     # 문제 없으면 저장
     user = User.objects.create(nickname=nickname)
     return Response({"success": "사용자가 성공적으로 생성되었습니다.", "data": {"id": user.id, "nickname" : nickname}}, status=status.HTTP_201_CREATED)
+
+
+@swagger_auto_schema(
+    method='get',
+    operation_id='닉네임 조회',
+    operation_description='닉네임을 조회합니다',
+    tags=['Users'],
+)
+@api_view(['GET'])
+def get_nickname(request, user_id):
+    user_nickname = User.objects.get(id=user_id).nickname
+    return Response({"success": "사용자가 성공적으로 조회되었습니다.", "data": { "nickname": user_nickname}},
+                    status=status.HTTP_201_CREATED)
