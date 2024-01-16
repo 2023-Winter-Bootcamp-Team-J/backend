@@ -64,12 +64,14 @@ services:
 
 
   rabbitmq:
+    container_name: rabbitmq
     hostname: nextpage_host
     image: rabbitmq:3-management
     command: rabbitmq-server
     #컨테이너를 stop 시키기 전까지 항상 재시작
     restart: unless-stopped
     environment:
+      - CELERY_BROKER_URL=amqp://npage:npage123@rabbitmq:5672/npage_host
       - RABBITMQ_DEFAULT_USER=npage
       - RABBITMQ_DEFAULT_PASS=npage123
       - RABBITMQ_DEFAULT_VHOST=npage_host
@@ -84,15 +86,18 @@ services:
 
 
   celery:
+    container_name: celery
     platform: linux/amd64
     build:
       context: .
+    environment:
+      - CELERY_BROKER_URL=amqp://npage:npage123@rabbitmq:5672/npage_host
     restart: unless-stopped
     depends_on:
       - "rabbitmq"
     networks:
       - npage
-    command: [ "celery","-A", "celery_app", "worker", "--loglevel=info" ]
+    command: [ "celery","-A", "backend", "worker", "--loglevel=info" ]
     volumes:
       - ./backend:/backend
 

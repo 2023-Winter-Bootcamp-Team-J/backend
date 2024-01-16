@@ -159,6 +159,13 @@ NEO4J_PASSWORD = 'nextpage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CELERY_BROKER_URL = 'amqp://npage:npage123@rabbitmq:5672/npage_host'
+CELERY_RESULT_BACKEND = 'rpc://'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Asia/Seoul'
+CELERY_ENABLE_UTC = False
+
 
 # AWS
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID") # .csv 파일에 있는 내용을 입력 Access key ID
