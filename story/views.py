@@ -29,15 +29,15 @@ openai.api_key = os.getenv("GPT_API_KEY")
 
 @swagger_auto_schema(
     method='get',
-    operation_id='시나리오 전체 조회',
-    operation_description='전체 시나리오를 조회합니다.',
+    operation_id='모든 루트 스토리 조회',
+    operation_description='모든 루트 스토리를 조회합니다.',
     tags=['Story'],
 )
 
 @swagger_auto_schema(
     method='post',
     operation_id='스토리 생성',
-    operation_description='내용을 작성하여 스토리를 생성합니다.',
+    operation_description='내용을 작성하여 스토리를 생성합니다.\n\n루트 스토리인 경우, parent_story를 음수로 설정해야합니다. 분기 스토리일 경우에는 분기를 만들 스토리의 아이디가 들어가야합니다.\n\nresponse_body의 id는 스토리의 아이디를 의미합니다.',
     tags=['Story'],
     request_body=StoryCreateSerializer,
 )
@@ -114,7 +114,7 @@ def story_list_create(request, *args, **kwargs):
 @swagger_auto_schema(
     method='post',
     operation_id='이미지 생성 요청',
-    operation_description='내용에 맞게 ai 이미지를 생성 요청합니다.',
+    operation_description='내용에 맞게 ai 이미지를 생성합니다.\n\n반환되는 URL은 임시이며, 버킷에 저장되는 URL은 스토리 생성 이후 생성됩니다.',
     tags=['Story'],
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
@@ -215,7 +215,7 @@ def story_detail(request, story_id):
 @swagger_auto_schema(
     method='get',
     operation_id='전체 스토리 조회',
-    operation_description='전체 스토리를 조회합니다.',
+    operation_description='전체 스토리를 조회합니다.\n\n스토리는 깊이 탐색 순서로 나열 됩니다.',
     tags=['Story'],
 )
 

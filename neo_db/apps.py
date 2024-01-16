@@ -4,7 +4,8 @@ from django.apps import AppConfig
 from neo4j import GraphDatabase
 
 from backend import mysettings
-
+import logging
+logger = logging.getLogger(__name__)
 
 class NeoDbConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
@@ -91,6 +92,22 @@ class NeoDbConfig(AppConfig):
         CREATE (u:User {user_id: $user_id, nickname: $nickname, created_at: $created_at, updated_at: $updated_at, is_deleted: $is_deleted})
         """
         session.run(query, parameters=fields)
+
+    # @staticmethod
+    # def get_story_id(session, image_url):
+    #     # 스토리 아이디 반환 쿼리
+    #     query = """
+    #             MATCH (s:Story)
+    #             WHERE s.image_url = $image_url
+    #             RETURN ID(s) AS story_id
+    #             """
+    #     result = session.run(query, image_url=image_url)
+    #     logger.error('result: ', result)
+    #     story_id = result.single()[0]
+    #     if story_id is None:
+    #         logger.error('story_id 내용물이 없음')
+    #     logger.error('story_id: ', story_id)
+    #     return story_id
 
     @staticmethod
     def create_story(session, fields):
