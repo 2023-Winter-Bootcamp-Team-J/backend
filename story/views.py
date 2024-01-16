@@ -94,6 +94,7 @@ def story_list_create(request, *args, **kwargs):
                 'child_content': child_story,
             }
             NeoDbConfig.create_story(session, fields)  # 스토리 생성한 것 neo4j 에 집어넣기
+            story_id = NeoDbConfig.get_story_id(session, image_url)
             if parent_story >= 0: # 분기 스토리일 경우 부모와의 관계 업데이트
                 NeoDbConfig.create_story_relationship(session, parent_story, image_url)
                 NeoDbConfig.update_child_content(session, parent_story)
@@ -101,15 +102,18 @@ def story_list_create(request, *args, **kwargs):
 
         if parent_story < 0: # parent_id가 음수일 시(루트 스토리) mysql 저장
             story = Story.objects.create(user_id=user_id, content=content, image_url=image_url)
+            story.story_id = story_id # neo4j 스토리 아이디
             mysqlstory = ExtendedStorySerializer(story)
             logger.error("mysqlstory: ", mysqlstory)
             return Response({
                 'message': '루트 스토리가 생성되었습니다.',
-                'data': mysqlstory.data}, status=status.HTTP_201_CREATED)
+                'data': mysqlstory.data
+                }, status=status.HTTP_201_CREATED)
 
         return Response({
             'message': '분기 스토리가 생성되었습니다.',
             'data': {
+                'story_id': story_id,
                 'content': content,
                 'image_url': image_url,
             }
