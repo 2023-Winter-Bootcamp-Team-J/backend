@@ -4,7 +4,8 @@ from django.apps import AppConfig
 from neo4j import GraphDatabase
 
 from backend import mysettings
-
+import logging
+logger = logging.getLogger(__name__)
 
 class NeoDbConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
@@ -93,12 +94,33 @@ class NeoDbConfig(AppConfig):
         session.run(query, parameters=fields)
 
     @staticmethod
+    def get_story_id(session, image_url):
+        # 스토리 아이디 반환 쿼리
+        query = """
+                MATCH (s:Story)
+                WHERE s.image_url = $image_url
+                RETURN ID(s) AS story_id
+                """
+        result = session.run(query, image_url=image_url)
+        record = result.single()
+
+        if record is None:
+            logger.error('story_id 내용물이 없음')
+            return None
+
+        story_id = record['story_id']
+        logger.error(f'story_id: {story_id}')
+        return story_id
+
+    @staticmethod
     def create_story(session, fields):
         # 스토리 노드 생성 쿼리
         create_story_query = """
         CREATE (s:Story {user_nickname: $user_nickname, content: $content, created_at: $created_at, updated_at: $updated_at, is_deleted: $is_deleted, image_url: $image_url})
         """
         session.run(create_story_query, parameters=fields)
+
+        # return result.single()['s'] # 생성된 내용 돌려줌
 
         # 스토리 간의 관계 설정 쿼리
         # for child_id in fields.get("child_stories", []):

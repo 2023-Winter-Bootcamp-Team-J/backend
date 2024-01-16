@@ -29,25 +29,31 @@ openai.api_key = os.getenv("GPT_API_KEY")
 
 @swagger_auto_schema(
     method='get',
-    operation_id='시나리오 전체 조회',
-    operation_description='전체 시나리오를 조회합니다.',
+    operation_id='모든 루트 스토리 조회',
+    operation_description='모든 루트 스토리를 조회합니다.\n\nstory_id는 neo4j의 스토리 아이디 입니다.',
     tags=['Story'],
 )
-
 @swagger_auto_schema(
     method='post',
     operation_id='스토리 생성',
-    operation_description='내용을 작성하여 스토리를 생성합니다.',
+    operation_description='내용을 작성하여 스토리를 생성합니다.\n\n루트 스토리인 경우, parent_story를 음수로 설정해야합니다. 분기 스토리일 경우에는 분기를 만들 스토리의 아이디가 들어가야합니다.\n\nresponse_body의 id는 스토리의 아이디를 의미합니다.',
     tags=['Story'],
     request_body=StoryCreateSerializer,
 )
-
 @api_view(['GET', 'POST'])
 def story_list_create(request, *args, **kwargs):
-    if request.method == 'GET':
+    if request.method == 'GET': # 모든 루트 스토리 조회
         stories = Story.objects.all()
+        # neo4j 아이디 가져오기
+        with NeoDbConfig.session_scope() as session:
+            for story in stories:
+                story.story_id = NeoDbConfig.get_story_id(session, story.image_url)
+
         serializer = ExtendedStorySerializer(stories, many=True)
-        return Response(serializer.data)
+        return Response({
+            "message": "모든 루트 스토리를 조회했습니다.",
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)
 
     elif request.method == 'POST':
         """
@@ -88,6 +94,7 @@ def story_list_create(request, *args, **kwargs):
                 'child_content': child_story,
             }
             NeoDbConfig.create_story(session, fields)  # 스토리 생성한 것 neo4j 에 집어넣기
+            story_id = NeoDbConfig.get_story_id(session, image_url)
             if parent_story >= 0: # 분기 스토리일 경우 부모와의 관계 업데이트
                 NeoDbConfig.create_story_relationship(session, parent_story, image_url)
                 NeoDbConfig.update_child_content(session, parent_story)
@@ -95,26 +102,28 @@ def story_list_create(request, *args, **kwargs):
 
         if parent_story < 0: # parent_id가 음수일 시(루트 스토리) mysql 저장
             story = Story.objects.create(user_id=user_id, content=content, image_url=image_url)
+            story.story_id = story_id # neo4j 스토리 아이디
             mysqlstory = ExtendedStorySerializer(story)
             logger.error("mysqlstory: ", mysqlstory)
             return Response({
                 'message': '루트 스토리가 생성되었습니다.',
-                'data': mysqlstory.data}, status=status.HTTP_201_CREATED)
+                'data': mysqlstory.data
+                }, status=status.HTTP_201_CREATED)
 
         return Response({
             'message': '분기 스토리가 생성되었습니다.',
             'data': {
+                'story_id': story_id,
                 'content': content,
                 'image_url': image_url,
             }
         }, status=status.HTTP_201_CREATED)
 
 
-
 @swagger_auto_schema(
     method='post',
     operation_id='이미지 생성 요청',
-    operation_description='내용에 맞게 ai 이미지를 생성 요청합니다.',
+    operation_description='내용에 맞게 ai 이미지를 생성합니다.\n\n반환되는 URL은 임시이며, 버킷에 저장되는 URL은 스토리 생성 이후 생성됩니다.',
     tags=['Story'],
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
@@ -215,10 +224,9 @@ def story_detail(request, story_id):
 @swagger_auto_schema(
     method='get',
     operation_id='전체 스토리 조회',
-    operation_description='전체 스토리를 조회합니다.',
+    operation_description='전체 스토리를 조회합니다.\n\n스토리는 깊이 탐색 순서로 나열 됩니다.',
     tags=['Story'],
 )
-
 @api_view(['GET'])
 def story_all(request, story_id):
     """

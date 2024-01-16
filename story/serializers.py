@@ -31,9 +31,12 @@ class StoryCreateSerializer(serializers.ModelSerializer): # 스토리 생성 시
 
 
 class ExtendedStorySerializer(serializers.ModelSerializer): # 생성 후 response, 전체 시나리오 조회 시 사용
+    story_id = serializers.IntegerField(read_only=True) # Neo4j의 story_id
     user_id = serializers.IntegerField(source='user.id')
     user_nickname = serializers.CharField(source='user.nickname', read_only=True)
     class Meta:
         model = Story
-        fields = ['id', 'user_id', 'user_nickname', 'content', 'image_url']
+        fields = ['story_id', 'user_id', 'user_nickname', 'content', 'image_url']
+
+
 
