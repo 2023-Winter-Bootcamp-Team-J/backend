@@ -30,10 +30,9 @@ openai.api_key = os.getenv("GPT_API_KEY")
 @swagger_auto_schema(
     method='get',
     operation_id='모든 루트 스토리 조회',
-    operation_description='모든 루트 스토리를 조회합니다.',
+    operation_description='모든 루트 스토리를 조회합니다.\n\nstory_id는 neo4j의 스토리 아이디 입니다.',
     tags=['Story'],
 )
-
 @swagger_auto_schema(
     method='post',
     operation_id='스토리 생성',
@@ -41,13 +40,20 @@ openai.api_key = os.getenv("GPT_API_KEY")
     tags=['Story'],
     request_body=StoryCreateSerializer,
 )
-
 @api_view(['GET', 'POST'])
 def story_list_create(request, *args, **kwargs):
-    if request.method == 'GET':
+    if request.method == 'GET': # 모든 루트 스토리 조회
         stories = Story.objects.all()
+        # neo4j 아이디 가져오기
+        with NeoDbConfig.session_scope() as session:
+            for story in stories:
+                story.story_id = NeoDbConfig.get_story_id(session, story.image_url)
+
         serializer = ExtendedStorySerializer(stories, many=True)
-        return Response(serializer.data)
+        return Response({
+            "message": "모든 루트 스토리를 조회했습니다.",
+            "data": serializer.data
+        }, status=status.HTTP_200_OK)
 
     elif request.method == 'POST':
         """
@@ -108,7 +114,6 @@ def story_list_create(request, *args, **kwargs):
                 'image_url': image_url,
             }
         }, status=status.HTTP_201_CREATED)
-
 
 
 @swagger_auto_schema(
@@ -218,7 +223,6 @@ def story_detail(request, story_id):
     operation_description='전체 스토리를 조회합니다.\n\n스토리는 깊이 탐색 순서로 나열 됩니다.',
     tags=['Story'],
 )
-
 @api_view(['GET'])
 def story_all(request, story_id):
     """
