@@ -4,6 +4,8 @@ mysettings.py
 
 nextpage-db
 
+logging/django.log
+
 backend/.erlang.cookie
 
 # pycharm
