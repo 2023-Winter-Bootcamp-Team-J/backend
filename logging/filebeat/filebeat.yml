@@ -1,0 +1,15 @@
+#filebeat.inputs:
+#  - type: log
+#    paths:
+#      - /var/lib/docker/containers/*/*.log
+#    json.message_key: log.message
+#    json.keys_under_root: true
+#output.logstash:
+#  hosts: ["logstash:5000"]
+filebeat.inputs:
+- type: log
+  paths:
+    - /logging/django.log
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]
