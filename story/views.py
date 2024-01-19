@@ -146,8 +146,11 @@ def story_list_create(request, *args, **kwargs):
 def generate_image(request): # 비동기적 이미지 생성
     if request.method == 'POST': #이미지 생성 비동기요청
         content = request.data.get('content', None)
-        task = generate_image_async.delay(content) # 비동기식 task를 여기서 호출
-        return Response({'task_id': task.id}, status=status.HTTP_202_ACCEPTED)
+        if content:
+            task = generate_image_async.delay(content) # 비동기식 task를 여기서 호출
+            return Response({'task_id': task.id}, status=status.HTTP_202_ACCEPTED)
+        else:
+            return Response({'error': 'No content provided'}, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'GET': #생성된 이미지 조회
         task_id = request.query_params.get('task_id')

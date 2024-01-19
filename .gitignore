@@ -4,7 +4,9 @@ mysettings.py
 
 nextpage-db
 
-logging/django.log
+*.log
+
+/logging/django.log
 
 backend/.erlang.cookie
 
