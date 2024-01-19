@@ -1,0 +1,17 @@
+{
+	"ulid": "01HMDN3CHPXHFSK1NA2N4PN5K6",
+	"minTime": 1705520172435,
+	"maxTime": 1705521600000,
+	"stats": {
+		"numSamples": 601579,
+		"numSeries": 5056,
+		"numChunks": 6409
+	},
+	"compaction": {
+		"level": 1,
+		"sources": [
+			"01HMDN3CHPXHFSK1NA2N4PN5K6"
+		]
+	},
+	"version": 1
+}

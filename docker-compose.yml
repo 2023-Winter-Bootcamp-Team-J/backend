@@ -23,6 +23,25 @@ services:
     networks:
       - npage
 
+ #추가한 코드
+#  mysqld-exporter:
+#      image: prom/mysqld-exporter
+#      container_name: mysqld-exporter
+#      environment:
+#        DATA_SOURCE_NAME: 'user:1234@(mysql:3306)/'
+#      ports:
+#        - "9104:9104"
+#      volumes:
+#        - /etc/localtime:/etc/localtime:ro
+#      command:
+#        - "--mysql.username=user:1234"
+#        - "--mysql.address=mysql:3306"
+#      depends_on:
+#        - mysql
+#      networks:
+#        - npage
+ #여기까지
+
   neo4j:
     container_name: neo4j
     image: neo4j:latest
@@ -83,7 +102,9 @@ services:
       - npage
     depends_on:
       - logstash
+    #entrypoint: "filebeat -e -strict.perms=false"
     command: filebeat -e -c /usr/share/filebeat/filebeat.yml
+    #filebeat -e -c /usr/share/filebeat/filebeat.yml
 
   backend:
     # FIXME: 프로젝트 루트경로기준으로 수정해야함.
@@ -102,6 +123,8 @@ services:
     restart: on-failure
     ports:
       - "8000:8000"
+    expose:
+      - "8000"
     networks:
       - npage
     depends_on:
@@ -147,7 +170,76 @@ services:
     volumes:
       - ./backend:/backend
 
+  node_exporter:
+    image: prom/node-exporter:latest
+    container_name: node_exporter
+    command:
+      - '--path.rootfs=/host'
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    ports:
+      - "9100:9100"
+    networks:
+      - npage
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
 
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./data/prometheus/config/:/etc/prometheus/
+      - ./data/prometheus/volume:/prometheus
+    ports:
+      - 9090:9090
+    command: # web.enalbe-lifecycle은 api 재시작없이 설정파일들을 reload 할 수 있게 해줌
+      - '--web.enable-lifecycle'
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    restart: always
+    depends_on:
+      - backend
+      - cadvisor
+    networks:
+      - npage
+
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GRAFANA_DEFAULT_USER=admin
+      - GRAFANA_DEFAULT_PASS=nextpage
+      - GRAFANA_DEFAULT_VHOST=npage_host
+    depends_on:
+      - prometheus
+    links:
+      - prometheus
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+    restart: always
+    networks:
+      - npage
+
+  cadvisor:
+    container_name: cadvisor
+    image: gcr.io/cadvisor/cadvisor:latest
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - 8080:8080
+    networks:
+      - npage
+    restart: always
 
 volumes:
   nextpage-db:

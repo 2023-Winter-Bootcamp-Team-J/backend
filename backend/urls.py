@@ -44,6 +44,7 @@ urlpatterns = [
     # Add more URL patterns here as needed
     path('api/v1/', include('story.urls')),
     path('api/v1/nicknames/', include('user.urls')),
+    path('', include('django_prometheus.urls')),
 ]
 
 urlpatterns += [
