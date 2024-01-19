@@ -20,3 +20,6 @@ __pycache__/
 
 # rabbiqmq
 backend/mnesia/*
+
+data/prometheus/volume/*
+data/grafana/volume/*
