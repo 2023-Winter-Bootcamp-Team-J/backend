@@ -213,3 +213,7 @@ AWS_S3_OBJECT_PARAMETERS = {
 # Static files, Media files
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
+
+#정적 파일 불러오기
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, '_static')
