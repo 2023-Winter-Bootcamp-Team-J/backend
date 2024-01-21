@@ -1,0 +1,249 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:8.0.11
+    container_name: mysql
+    platform: linux/amd64
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE} 
+      MYSQL_ROOT_HOST: ${MYSQL_ROOT_HOST}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: Asia/Seoul
+    ports:
+      - "3306:3306"
+    restart: always
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - ./nextpage-db/mysql:/usr/src/mysql
+    networks:
+      - npage
+
+ #추가한 코드
+#  mysqld-exporter:
+#      image: prom/mysqld-exporter
+#      container_name: mysqld-exporter
+#      environment:
+#        DATA_SOURCE_NAME: 'user:1234@(mysql:3306)/'
+#      ports:
+#        - "9104:9104"
+#      volumes:
+#        - /etc/localtime:/etc/localtime:ro
+#      command:
+#        - "--mysql.username=user:1234"
+#        - "--mysql.address=mysql:3306"
+#      depends_on:
+#        - mysql
+#      networks:
+#        - npage
+ #여기까지
+
+  neo4j:
+    container_name: neo4j
+    image: neo4j:latest
+    restart: always
+    environment:
+      NEO4J_AUTH: ${NEO4J_USERNAME}/${NEO4J_PASSWORD}
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - ./nextpage-db/neo4j/data:/data
+      - ./nextpage-db/neo4j/logs:/logs
+    networks:
+      - npage
+
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
+    container_name: elasticsearch
+    environment:
+      - "discovery.type=single-node"
+    ports:
+      - "9200:9200"
+    networks:
+      - npage
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.10.2
+    container_name: logstash
+    volumes:
+      - ./logging/:/logging/
+      - ./logging/logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - ./logging/logstash/pipeline:/usr/share/logstash/pipeline
+    ports:
+      - "5044:5044"
+    networks:
+      - npage
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.10.2
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    networks:
+      - npage
+    depends_on:
+      - elasticsearch
+
+
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.10.2
+    volumes:
+      - ./logging:/logging
+      - ./logging/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+    networks:
+      - npage
+    depends_on:
+      - logstash
+    #entrypoint: "filebeat -e -strict.perms=false"
+    command: filebeat -e -c /usr/share/filebeat/filebeat.yml
+    #filebeat -e -c /usr/share/filebeat/filebeat.yml
+
+  backend:
+    # FIXME: 프로젝트 루트경로기준으로 수정해야함.
+    build:
+      context: .
+      args:
+          DJANGO_ALLOWED_HOSTS: “*”
+          DJANGO_SECRET_KEY: “*”
+          DJANGO_CORS_ORIGIN_WHITELIST: “*”
+    container_name: django
+    # command : 컨테이너가 띄워질 때 실행하는 명령어 / 서버실행
+    command: sh -c "python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py loaddata init_data.json && python3 manage.py collectstatic && gunicorn backend.wsgi:application --bind 0.0.0.0:8000"
+    volumes:
+      - ./backend:/backend
+      - ./logging/:/logging/
+    restart: on-failure
+    ports:
+      - "8000:8000"
+    expose:
+      - "8000"
+    networks:
+      - npage
+    depends_on:
+      - mysql
+      - neo4j
+
+
+  rabbitmq:
+    container_name: rabbitmq
+    hostname: nextpage_host
+    image: rabbitmq:3-management
+    command: rabbitmq-server
+    #컨테이너를 stop 시키기 전까지 항상 재시작
+    restart: unless-stopped
+    environment:
+      - CELERY_BROKER_URL=amqp://npage:npage123@rabbitmq:5672/npage_host
+      - RABBITMQ_DEFAULT_USER=npage
+      - RABBITMQ_DEFAULT_PASS=npage123
+      - RABBITMQ_DEFAULT_VHOST=npage_host
+    ports:
+      - 5672:5672    # 이 포트로는 접속 안됨. 나중에 더 알아보고 추가할 예정
+      - 15672:15672  # 이 포트로 접근해서 guest/guest 입력
+    volumes:
+      - ./backend:/var/lib/rabbitmq
+    # 가상 네트워크 연결
+    networks:
+      - npage
+
+
+  celery:
+    container_name: celery
+    platform: linux/amd64
+    build:
+      context: .
+    environment:
+      - CELERY_BROKER_URL=amqp://npage:npage123@rabbitmq:5672/npage_host
+    restart: unless-stopped
+    depends_on:
+      - "rabbitmq"
+    networks:
+      - npage
+    command: [ "celery","-A", "backend", "worker", "--loglevel=info" ]
+    volumes:
+      - ./backend:/backend
+
+  node_exporter:
+    image: prom/node-exporter:latest
+    container_name: node_exporter
+    command:
+      - '--path.rootfs=/host'
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - "^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)"
+    ports:
+      - "9100:9100"
+    networks:
+      - npage
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./data/prometheus/config/:/etc/prometheus/
+      - ./data/prometheus/volume:/prometheus
+    ports:
+      - 9090:9090
+    command: # web.enalbe-lifecycle은 api 재시작없이 설정파일들을 reload 할 수 있게 해줌
+      - '--web.enable-lifecycle'
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    restart: always
+    depends_on:
+      - backend
+      - cadvisor
+    networks:
+      - npage
+
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GRAFANA_DEFAULT_USER=admin
+      - GRAFANA_DEFAULT_PASS=nextpage
+      - GRAFANA_DEFAULT_VHOST=npage_host
+    depends_on:
+      - prometheus
+    links:
+      - prometheus
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+    restart: always
+    networks:
+      - npage
+
+  cadvisor:
+    container_name: cadvisor
+    image: gcr.io/cadvisor/cadvisor:v0.45.0
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - 8080:8080
+    networks:
+      - npage
+    restart: always
+
+volumes:
+  nextpage-db:
+
+
+networks:
+  npage:
