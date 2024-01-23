@@ -9,7 +9,11 @@
 filebeat.inputs:
 - type: log
   paths:
-    - /logging/django.log
+    - /var/log/nginx/*.log
 
-output.elasticsearch:
-  hosts: ["elasticsearch:9200"]
+output.logstash:
+  enabled: true
+  hosts: ["logstash:5044"]
+
+setup.kibana:
+  host: "http://kibana:5601"
