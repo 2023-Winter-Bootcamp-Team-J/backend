@@ -60,24 +60,27 @@ INSTALLED_APPS = [
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {message}',
-            'style': '{',
-        },
-    },
+    # 'formatters': {
+    #     'verbose': {
+    #         'format': '{levelname} {asctime} {module} {message}',
+    #         'style': '{',
+    #     },
+    # },
     'handlers': {
-        'file': {
-            'level': 'INFO',
-            'class': 'logging.FileHandler',
-            'filename': '/logging/django.log',
-            'formatter': 'verbose',
-        },
-    },
+         'console': {
+         'level': 'DEBUG',
+         'class': 'logging.StreamHandler',
+     },
+    #     'file': {
+    #         'level': 'INFO',
+    #         'class': 'logging.FileHandler',
+    #         'filename': '/logging/django.log',
+    #         'formatter': 'verbose',
+    #     },
     'loggers': {
         'django': {
-            'handlers': ['file'],
-            'level': 'INFO',
+            'handlers': ['console'],
+            'level': 'DEBUG',
             'propagate': True,
         },
     },
