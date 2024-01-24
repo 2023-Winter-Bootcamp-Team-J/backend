@@ -28,10 +28,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-SWAGGER_SETTINGS = {
-   'USE_SESSION_AUTH': True
-}
-
 ALLOWED_HOSTS = ['*']
 
 OPENAI_API_KEY = os.getenv('GPT_API_KEY')
@@ -67,17 +63,15 @@ LOGGING = {
         },
     },
     'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'django.log'), 
+            'formatter': 'verbose',
         'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-            # 'formatter': 'verbose',  # Uncomment this if you want to use the formatter
-        },
-        # 'file': {
-        #     'level': 'INFO',
-        #     'class': 'logging.FileHandler',
-        #     'filename': '/logging/django.log',
-        #     'formatter': 'verbose',
-        # },
+        }.
     },
     'loggers': {
         'django': {
