@@ -66,16 +66,17 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(BASE_DIR, 'django.log'), 
+            'filename': os.path.join(BASE_DIR, 'django.log'),
             'formatter': 'verbose',
-        'console': {
+        },
+        'console': {  # This should be a separate entry in the 'handlers' dictionary
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-        }.
+        },
     },
     'loggers': {
         'django': {
-            'handlers': ['console'],
+            'handlers': ['console', 'file'],  # You can have multiple handlers for a logger
             'level': 'DEBUG',
             'propagate': True,
         },
