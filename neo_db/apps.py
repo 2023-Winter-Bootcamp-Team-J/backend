@@ -3,7 +3,6 @@ from contextlib import contextmanager
 from django.apps import AppConfig
 from neo4j import GraphDatabase
 
-from backend import mysettings
 import logging
 logger = logging.getLogger(__name__)
 
