@@ -28,10 +28,6 @@ SECRET_KEY = MY_SECRET
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-SWAGGER_SETTINGS = {
-   'USE_SESSION_AUTH': True
-}
-
 ALLOWED_HOSTS = ['*']
 
 OPENAI_API_KEY = os.getenv('GPT_API_KEY')
@@ -69,7 +65,7 @@ LOGGING = {
         'file': {
             'level': 'INFO',
             'class': 'logging.FileHandler',
-            'filename': '/logging/django.log',
+            'filename': os.path.join(BASE_DIR, 'django.log'), 
             'formatter': 'verbose',
         },
     },
