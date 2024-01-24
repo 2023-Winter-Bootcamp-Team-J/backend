@@ -9,7 +9,7 @@ Django==3.2.6
 django-cors-headers
 django-prometheus==2.3.1
 django-storages==1.14.2
-django_neomodel==0.0.4
+django_neomodel
 djangorestframework==3.14.0
 djangorestframework-simplejwt==5.2.2
 drf-yasg==1.21.6
@@ -22,7 +22,7 @@ mysqlclient==2.2.1
 neo4django
 neo4j==5.15.0
 neo4jrestclient==2.1.1
-neomodel==5.2.1
+neomodel
 openai==0.28.0
 packaging==23.2
 PyJWT==2.8.0
