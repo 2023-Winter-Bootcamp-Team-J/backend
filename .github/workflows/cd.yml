@@ -59,8 +59,8 @@ jobs: # Job
           key: ${{ secrets.AWS_KEY_PEM }}
           envs: GITHUB_SHA
           script: |
-              cd NextPage/backend
+              cd NextPage/
               git pull
-              sudo docker-compose -f docker-compose.yml down
-              sudo docker-compose -f docker-compose.yml pull
-              sudo docker-compose -f docker-compose.yml up -d --build
+              sudo docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml down
+              sudo docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml pull
+              sudo docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d --build
