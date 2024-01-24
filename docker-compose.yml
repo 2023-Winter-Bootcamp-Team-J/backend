@@ -244,6 +244,5 @@ services:
 volumes:
   nextpage-db:
 
-
 networks:
   npage:
