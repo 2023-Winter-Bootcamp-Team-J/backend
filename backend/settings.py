@@ -60,23 +60,25 @@ INSTALLED_APPS = [
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
-    # 'formatters': {
-    #     'verbose': {
-    #         'format': '{levelname} {asctime} {module} {message}',
-    #         'style': '{',
-    #     },
-    # },
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
-         'console': {
-         'level': 'DEBUG',
-         'class': 'logging.StreamHandler',
-     },
-    #     'file': {
-    #         'level': 'INFO',
-    #         'class': 'logging.FileHandler',
-    #         'filename': '/logging/django.log',
-    #         'formatter': 'verbose',
-    #     },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            # 'formatter': 'verbose',  # Uncomment this if you want to use the formatter
+        },
+        # 'file': {
+        #     'level': 'INFO',
+        #     'class': 'logging.FileHandler',
+        #     'filename': '/logging/django.log',
+        #     'formatter': 'verbose',
+        # },
+    },
     'loggers': {
         'django': {
             'handlers': ['console'],
@@ -86,8 +88,7 @@ LOGGING = {
     },
 }
 
-
-#swwagger_setting 을 위한 연동
+# SWAGGER 연동
 SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
     'SECURITY_DEFINITIONS': {
