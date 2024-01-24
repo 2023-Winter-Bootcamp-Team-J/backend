@@ -14,9 +14,11 @@ backend/.erlang.cookie
 .idea
 
 # cpython
-migrations/
 __pycache__/
 *.pyc
 
 # rabbiqmq
 backend/mnesia/*
+
+data/prometheus/volume/*
+data/grafana/volume/*

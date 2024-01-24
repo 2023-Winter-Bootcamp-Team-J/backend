@@ -1,4 +1,3 @@
-from django.contrib.admin.templatetags.admin_list import results
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from neo4j import GraphDatabase
@@ -215,7 +214,7 @@ def story_detail(request, story_id):
             "user_nickname": result["s.user_nickname"],
             "content": result["s.content"],
             "image_url": result["s.image_url"],
-            "child_id:": result["s.child_id"],
+            "child_id": result["s.child_id"],
             "child_content": result["s.child_content"]
         }
 
