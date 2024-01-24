@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-SECRET_KEY = MY_SECRET
+# SECRET_KEY = MY_SECRET
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -137,12 +137,25 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# Neo4j 데이터베이스 설정
-DATABASE_URL = MY_DATABASE_URL
+# # Neo4j 데이터베이스 설정
+# DATABASE_URL = MY_DATABASE_URL
+#
+# # mysql db 연동
+# DATABASES = MY_DATABASES
 
-# mysql db 연동
-DATABASES = MY_DATABASES
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('DATABASE_NAME', 'default_db_name'),
+        'USER': os.environ.get('DATABASE_USER', 'default_user'),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD', 'default_password'),
+        'HOST': os.environ.get('DATABASE_HOST', 'localhost'),
+        'PORT': os.environ.get('DATABASE_PORT', '3306'),
+    }
+}
 
+DATABASE_URL = os.environ.get('DATABASE_URL', "default_database_url")
+SECRET_KEY = os.environ.get('SECRET_KEY', 'default_secret_key')
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
