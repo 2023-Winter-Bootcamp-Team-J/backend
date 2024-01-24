@@ -42,12 +42,12 @@ jobs: # Job
       # docker-compose에서 사용하는 이미지들을 build, 공식 이미지들은 x
       - name: Build docker images
         run: |
-          docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml build
+          docker-compose -f docker-compose.yml build
           docker images
 
       # docker hub repository에 이미지들을 push
       - name: Push docker images 
-        run: docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml push
+        run: docker-compose -f docker-compose.yml push
 
       # ssh를 통해 EC2에 접속, 접속한 후에 실행할 스크립트 작성
       - name: Connect to EC2 using SSH
@@ -61,6 +61,6 @@ jobs: # Job
           script: |
               cd github-actions-session
               git pull
-              sudo docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml down
-              sudo docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml pull
-              sudo docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d --build
+              sudo docker-compose -f docker-compose.yml down
+              sudo docker-compose -f docker-compose.yml pull
+              sudo docker-compose -f docker-compose.yml up -d --build
