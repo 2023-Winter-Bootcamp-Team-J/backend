@@ -19,7 +19,6 @@ COPY requirements.txt /
 
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
-RUN pip install Pillow
 RUN pip install neo4j-driver
 RUN pip install --upgrade django_neomodel neomodel
 
