@@ -60,7 +60,10 @@ jobs: # Job
           envs: GITHUB_SHA
           script: |
               cd NextPage/
-              git pull
+              git submodule foreach git pull origin develop
+              git add .
+              git commit -m "변경사항 반영"
+              git push
               sudo docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml down
               sudo docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml pull
               sudo docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d --build
