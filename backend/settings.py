@@ -12,9 +12,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 import sys
 from pathlib import Path
-
-# sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
-from mysettings import MY_DATABASES, MY_DATABASE_URL, MY_SECRET
+# from .mysettings import MY_DATABASES, MY_DATABASE_URL, MY_SECRET
 from dotenv import load_dotenv
 
 load_dotenv() # env 파일에 있는 값 얻어오기
@@ -25,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-SECRET_KEY = MY_SECRET
+# SECRET_KEY = MY_SECRET
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -138,25 +136,25 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# Neo4j 데이터베이스 설정
-DATABASE_URL = MY_DATABASE_URL
-
-# mysql db 연동
-DATABASES = MY_DATABASES
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': os.environ.get('DATABASE_NAME', 'default_db_name'),
-#         'USER': os.environ.get('DATABASE_USER', 'default_user'),
-#         'PASSWORD': os.environ.get('DATABASE_PASSWORD', 'default_password'),
-#         'HOST': os.environ.get('DATABASE_HOST', 'localhost'),
-#         'PORT': os.environ.get('DATABASE_PORT', '3306'),
-#     }
-# }
+# # Neo4j 데이터베이스 설정
+# DATABASE_URL = MY_DATABASE_URL
 #
-# DATABASE_URL = os.environ.get('DATABASE_URL', "default_database_url")
-# SECRET_KEY = os.environ.get('SECRET_KEY', 'default_secret_key')
+# # mysql db 연동
+# DATABASES = MY_DATABASES
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('DATABASE_NAME'),
+        'USER': os.environ.get('DATABASE_USER'),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD'),
+        'HOST': os.environ.get('DATABASE_HOST'),
+        'PORT': os.environ.get('DATABASE_PORT'),
+    }
+}
+
+DATABASE_URL = os.environ.get('DATABASE_URL')
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -228,6 +226,4 @@ AWS_S3_OBJECT_PARAMETERS = {
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
 
-#정적 파일 불러오기
-STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, '_static')
