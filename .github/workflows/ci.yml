@@ -28,14 +28,13 @@ jobs:
         pip install -r requirements.txt
         python manage.py migrate
     - name: Run Tests
-      run: python manage.py test
-#      env:
-#        DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
-#        DATABASE_USER: ${{ secrets.DATABASE_USER }}
-#        DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
-#        DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
-#        DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
-#        DATABASE_URL: ${{ secrets.DATABASE_URL }}
-#        SECRET_KEY: ${{ secrets.SECRET_KEY }}
-#      run: |
-#        python manage.py test
+      env:
+        DATABASE_NAME: ${{ secrets.DATABASE_NAME }}
+        DATABASE_USER: ${{ secrets.DATABASE_USER }}
+        DATABASE_PASSWORD: ${{ secrets.DATABASE_PASSWORD }}
+        DATABASE_HOST: ${{ secrets.DATABASE_HOST }}
+        DATABASE_PORT: ${{ secrets.DATABASE_PORT }}
+        DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+      run: |
+        python manage.py test
