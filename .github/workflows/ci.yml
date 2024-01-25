@@ -24,8 +24,8 @@ jobs:
 
     - name: Set PYTHONPATH
       run: |
-        echo "PYTHONPATH=${{ github.workspace }}/backend" >> $GITHUB_ENV
-        echo "PYTHONPATH=${{ github.workspace }}/backend" >> $GITHUB_PATH
+        echo "PYTHONPATH=${{ github.workspace }}" >> $GITHUB_ENV
+        echo "PYTHONPATH=${{ github.workspace }}" >> $GITHUB_PATH
 
 
     - name: Install Dependencies

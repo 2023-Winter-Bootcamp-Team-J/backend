@@ -13,6 +13,7 @@ import os
 import sys
 from pathlib import Path
 
+sys.path.append(os.path.join(os.path.dirname(__file__), 'backend'))
 from backend.mysettings import MY_DATABASES, MY_DATABASE_URL, MY_SECRET
 from dotenv import load_dotenv
 
