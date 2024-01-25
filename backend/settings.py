@@ -12,7 +12,8 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 import sys
 from pathlib import Path
-from .mysettings import MY_DATABASES, MY_DATABASE_URL, MY_SECRET
+
+from backend.mysettings import MY_DATABASES, MY_DATABASE_URL, MY_SECRET
 from dotenv import load_dotenv
 
 load_dotenv() # env 파일에 있는 값 얻어오기

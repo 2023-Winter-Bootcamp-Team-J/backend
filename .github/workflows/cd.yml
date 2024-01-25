@@ -36,14 +36,21 @@ jobs: # Job
       # 이미지 빌드를 위해 .env 생성
       - name: Setting .env
         run: |
-          echo "${{ secrets.ENV }}" >> .env
-          cat .env
+  #          echo "${{ secrets.ENV }}" >> .env
+         echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> .env
+         echo "DATABASE_USER=${{ secrets.DATABASE_USER }}" >> .env
+         echo "DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}" >> .env
+         echo "DATABASE_HOST=${{ secrets.DATABASE_HOST }}" >> .env
+         echo "DATABASE_PORT=${{ secrets.DATABASE_PORT }}" >> .env
+         echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> .env
+      # ... add other variables
+           cat .env
+
 
       # docker-compose에서 사용하는 이미지들을 build, 공식 이미지들은 x
       - name: Build docker images
-        run: |
-          docker-compose -f docker-compose.yml build
-          docker images
+        run: docker-compose -f docker-compose.yml build
+#          docker images
 
       # docker hub repository에 이미지들을 push
       - name: Push docker images 
