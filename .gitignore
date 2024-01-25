@@ -22,3 +22,4 @@ backend/mnesia/*
 
 data/prometheus/volume/*
 data/grafana/volume/*
+data/grafana/grafana.db
