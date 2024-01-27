@@ -8,15 +8,15 @@ openai.api_key = os.getenv("GPT_API_KEY")
 
 def generate_image_logic(content):
     try:
-        prompt_keyword = "Please do the drawing style as follows: Mix American cartoon painting with watercolour , high quality"
+        prompt_keyword = """Design: a detailed digital illustration drawn with bright colors and clean lines. Please make the following images according to the previous requirements: """
 
         response = openai.Image.create(
             model="dall-e-3",
             size="1024x1024",
             quality="standard",
             prompt="""
-                "Please ensure the following conditions when generating the image: The image must not include any text. Do not add speech bubbles or text that represents the character's dialogue or thoughts. The image should purely represent a scene with visual elements only. 
-                Create an image that contains a simple and clear single scene. 
+                When generating an image, be sure to observe the following conditions: Do not add text to the image. 
+                I want an illustration image, not contain text in the image.
                 """ + prompt_keyword + content,
             n=1
         )
